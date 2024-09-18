@@ -1,4 +1,2 @@
-numpy
 json
-matplotlib
-streamlit
+matplotlib.pyplot
