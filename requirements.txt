@@ -1,5 +1,4 @@
 numpy
 json
-matplotlib.pyplot
+matplotlib
 streamlit
-urllib.request
