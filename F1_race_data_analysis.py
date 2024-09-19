@@ -7,22 +7,52 @@ import matplotlib.pyplot as plt
 
 st.title("F1 Data analytics")
 year = st.selectbox("Select a year", [2023,2024])
-country_name = st.selectbox("Select a GP",["Bahrain","Spain","Hungary"])
+
+response = urlopen(f"https://api.openf1.org/v1/sessions?year={year}")
+data = json.loads(response.read().decode('utf-8'))
+
+circuit = [ data[n]["circuit_short_name"] for n in range(len(data))]
+
+seen = set()
+specific_item_1 = "Sakhir"  # This item will be kept in two instances if duplicated
+
+
+circuit_lst = []
+
+for item in circuit:
+    if item == specific_item_1:
+        # Allow exactly two instances of this specific item
+        if circuit_lst.count(item) < 2:
+            circuit_lst.append(item)
+    elif item not in seen:
+        # General case: add the item if it hasn't been seen
+        circuit_lst.append(item)
+        seen.add(item)
+
+
+
+country_name = st.selectbox("Select a GP", circuit_lst)
+country_name_api = country_name.replace(" ","+")
+print(country_name_api)
 session_name = st.selectbox("Select a session",["Race","Qualifying"])
 if year == 2023:
     driver_numbers = st.multiselect("Select driver(s)", [1,16,81])
 else:
-    driver_numbers = st.multiselect("Select driver(s)", [44,11,63])
+    driver_numbers = st.multiselect("Select driver(s)", [44,11,63,55])
+st.write(f'https://api.openf1.org/v1/sessions?circuit_short_name={country_name_api}&session_name={session_name}&year={year}')
+response = urlopen(f'https://api.openf1.org/v1/sessions?circuit_short_name={country_name_api}&session_name={session_name}&year={year}')
 
-response = urlopen(f'https://api.openf1.org/v1/sessions?country_name={country_name}&session_name={session_name}&year={year}')
 data = json.loads(response.read().decode('utf-8'))
+print("Test", data)
 
 st.write(data[0]["session_key"])
 session_key = data[0]["session_key"]
 
 def lap_time_compare(driver_number):
     response = urlopen(f'https://api.openf1.org/v1/laps?session_key={session_key}&driver_number={driver_number}')
+    st.write(f'https://api.openf1.org/v1/laps?session_key={session_key}&driver_number={driver_number}')
     data = json.loads(response.read().decode('utf-8'))
+    st.write(data)
     lap_time_1 = [data[n]["lap_duration"] for n in range(len(data))]
     return (lap_time_1)
 
@@ -64,7 +94,7 @@ while index < len(driver_numbers):
     for i in range(len(lap_time_1)):
         if i <= lap_end[n]:
             mfc = get_marker(tires[n])
-            print(tires)
+            
         else:
             n += 1
         plt.plot(i+1, lap_time_1[i], marker= "o", mfc = mfc, mec = "k")
