@@ -6,19 +6,18 @@ import matplotlib.pyplot as plt
 
 
 st.title("F1 Data analytics")
-year = st.selectbox("Select a year", [2023,2024])
 
+#Year
+year = st.selectbox("Select a year", [2023,2024])
 response = urlopen(f"https://api.openf1.org/v1/sessions?year={year}")
 data = json.loads(response.read().decode('utf-8'))
 
+#Circuit
 circuit = [ data[n]["circuit_short_name"] for n in range(len(data))]
-
 seen = set()
 specific_item_1 = "Sakhir"  # This item will be kept in two instances if duplicated
 
-
 circuit_lst = []
-
 for item in circuit:
     if item == specific_item_1:
         # Allow exactly two instances of this specific item
@@ -29,30 +28,45 @@ for item in circuit:
         circuit_lst.append(item)
         seen.add(item)
 
+circuit_name = st.selectbox("Select a GP", circuit_lst)
+circuit_name_api = circuit_name.replace(" ","+")
 
 
-country_name = st.selectbox("Select a GP", circuit_lst)
-country_name_api = country_name.replace(" ","+")
-print(country_name_api)
-session_name = st.selectbox("Select a session",["Race","Qualifying"])
-if year == 2023:
-    driver_numbers = st.multiselect("Select driver(s)", [1,16,81])
-else:
-    driver_numbers = st.multiselect("Select driver(s)", [44,11,63,55])
-st.write(f'https://api.openf1.org/v1/sessions?circuit_short_name={country_name_api}&session_name={session_name}&year={year}')
-response = urlopen(f'https://api.openf1.org/v1/sessions?circuit_short_name={country_name_api}&session_name={session_name}&year={year}')
-
+#Session
+print(circuit_name_api, "\n")
+response = urlopen(f"https://api.openf1.org/v1/sessions?circuit_short_name={circuit_name_api}&year={year}")
 data = json.loads(response.read().decode('utf-8'))
-print("Test", data)
 
-st.write(data[0]["session_key"])
-session_key = data[0]["session_key"]
+print("data", data)
+session_api = [data[n]["session_name"] for n in range(len(data))]
+print(session_api)
+session_name = st.selectbox("Select a session",session_api)
+
+for n in range(len(data)):
+    if data[n]["session_name"] == session_name:
+        session_key = data[n]["session_key"]
+    
+session_name_api = session_name.replace(" ", "+")
+st.write(session_key)
+
+
+
+
+
+
+response = urlopen(f'https://api.openf1.org/v1/sessions?circuit_short_name={circuit_name_api}&session_name={session_name_api}&year={year}')
+data = json.loads(response.read().decode('utf-8'))
+
+
+#Driver number
+response = urlopen(f"https://api.openf1.org/v1/drivers?session_key={session_key}")
+data = json.loads(response.read().decode('utf-8'))
+driver_numbers_api = [ data[n]["driver_number"] for n in range(len(data))]
+driver_numbers =  st.multiselect("Select driver(s)",driver_numbers_api)
 
 def lap_time_compare(driver_number):
     response = urlopen(f'https://api.openf1.org/v1/laps?session_key={session_key}&driver_number={driver_number}')
-    st.write(f'https://api.openf1.org/v1/laps?session_key={session_key}&driver_number={driver_number}')
     data = json.loads(response.read().decode('utf-8'))
-    st.write(data)
     lap_time_1 = [data[n]["lap_duration"] for n in range(len(data))]
     return (lap_time_1)
 
@@ -102,7 +116,7 @@ while index < len(driver_numbers):
 
 
 
-ax.set(xlabel = "Laps", ylabel = "Laptime [s]", title = f"{country_name} Grand Prix, {session_name}, {year}")
+ax.set(xlabel = "Laps", ylabel = "Laptime [s]", title = f"{circuit_name} Grand Prix, {session_name}, {year}")
 plt.legend(driver_numbers)
 ax.grid()
 
