@@ -18,10 +18,8 @@ st.write(test.get_session_key(circuit, session))
 
 outlier = st.toggle("Eclude over 120%")
 
-
 driver_number = st.multiselect("Select a Driver", test.get_drivers())
 
 
-df = test.get_race_data(driver_number,outlier)
-fig = px.line(df, x = "laps", y="lap_time")
-st.plotly_chart(fig)
+test.get_race_data(driver_number,outlier)
+test.graphics()
