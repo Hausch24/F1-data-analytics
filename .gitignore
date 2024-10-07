@@ -1,0 +1,12 @@
+__pycache__
+venv
+*.pyc
+.pytest_cache
+.vscode
+*.jpg
+*.png
+*.zip
+*.pdf
+*.egg-info
+docs/_build
+TODO.txt
