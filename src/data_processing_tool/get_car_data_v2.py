@@ -1,7 +1,6 @@
 # %%
 import json
 from datetime import datetime, timedelta
-import matplotlib.pyplot as plt 
 from urllib.request import urlopen
 
 URL_MAIN    = "https://api.openf1.org/v1/"
