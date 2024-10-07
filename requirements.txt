@@ -1,1 +1,9 @@
-matplotlib
+numpy==1.26.2
+sympy==1.12
+scipy==1.11.4
+pandas==2.1.4
+streamlit==1.38
+matplotlib==3.8.2
+ipykernel==6.27.1
+ipython==8.18.1
+pytest==7.4.3
