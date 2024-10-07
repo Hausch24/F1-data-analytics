@@ -1,3 +1,4 @@
+ #%%
 import streamlit as st
 from urllib.request import urlopen
 import json
@@ -42,9 +43,9 @@ session_name = st.selectbox("Select a session",session_api)
 for n in range(len(data)):
     if data[n]["session_name"] == session_name:
         session_key = data[n]["session_key"]  
-session_name_api = session_name.replace(" ", "+")
-response = urlopen(f'https://api.openf1.org/v1/sessions?circuit_short_name={circuit_name_api}&session_name={session_name_api}&year={year}')
-data = json.loads(response.read().decode('utf-8'))
+st.write(session_key)
+
+outliers = st.checkbox("Remove outliers")
 
 #Driver number
 response = urlopen(f"https://api.openf1.org/v1/drivers?session_key={session_key}")
@@ -53,14 +54,11 @@ driver_numbers_api = [ data[n]["driver_number"] for n in range(len(data))]
 driver_numbers =  st.multiselect("Select driver(s)",driver_numbers_api)
 
 
-st.write(session_key)
-
 def lap_time_compare(driver_number):
     response = urlopen(f'https://api.openf1.org/v1/laps?session_key={session_key}&driver_number={driver_number}')
     data = json.loads(response.read().decode('utf-8'))
     lap_time = [data[n]["lap_duration"] for n in range(len(data))]
     lap_time = [0 if item is None else item for item in lap_time]
-    st.write(lap_time)
     return (lap_time)
 
 def tire_data(driver_number):
@@ -86,26 +84,59 @@ def get_marker(tires):
 index = 0
 fig, ax = plt.subplots()
 
-
+#%%
 while index < len(driver_numbers):
     print(driver_numbers[index])
     lap_time = lap_time_compare(driver_numbers[index])
     tires, lap_end = tire_data(driver_numbers[index])
     lap_time[0]=lap_time[1]
     lap_end = [n-1 for n in lap_end]
+    
+    if outliers:
+        for n in range(1, len(lap_time)):
+            if lap_time[n] >= ((sum(lap_time[0:n])/n) * 1.2):
+                lap_time[n] = 0
+
+
+    filtered_lap_time = []
+    filtered_laps = []
+    lap_counter = 1
+
+    for time in lap_time:
+        # If it's not an outlier, append the lap time and lap counter for plotting
+        if time != 0:
+            filtered_lap_time.append(time)
+            filtered_laps.append(lap_counter)
+        
+        # Always increment the lap counter regardless of whether it's an outlier
+        if time == 0:
+            lap_counter += 2  # Increment by 2 when there's an outlier
+        else:
+            lap_counter += 1
+    
+    
+
+    print("laptime :",len(lap_time), lap_time, "\nlaps :", len(filtered_laps), filtered_laps)
+
+
+    #Plot lines
+    ax.plot( filtered_laps , filtered_lap_time, linestyle = "-" )
+
+    lap_end.insert(0,1)
 
     n = 0
-    laps = [n+1 for n in range(len(lap_time))]
-    ax.plot( laps , lap_time, linestyle = "-" )
-
-    for i in range(len(lap_time)):
-        if i <= lap_end[n]:
+    for i in range(lap_end[n],lap_end[n+2]):
+        print("i:" , i , "\n lap end: ", range(lap_end[n],lap_end[n+2]))
+        if i == filtered_laps[i-1]:
+            print("megy")
             mfc = get_marker(tires[n])
-            
+
         else:
             n += 1
-        plt.plot(i+1, lap_time[i], marker= "o", mfc = mfc, mec = "k")
-    index += 1
+    
+        plt.plot(i, filtered_lap_time[i], marker= "o", mfc = "mfc", mec = "k")
+
+    index +=1   
 
 
 
@@ -115,3 +146,4 @@ ax.grid()
 
 st.pyplot(fig)
     
+# %%
