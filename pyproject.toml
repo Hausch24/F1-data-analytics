@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "main_dir"
+authors = [
+    { name = "Levente Balogh", email = "levi.balogh98@gmail.com.com" },
+]
+description = "TODO"
+requires-python = ">=3.8"
+keywords = ["f1","telemetry"]
+license = { text = "BSD-3-Clause" }
+classifiers = ["Programming Language :: Python :: 3"]
+
+dynamic = ["readme", "version", "dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+version = { attr = "src.__version__" }
+readme = { file = "readme.md" }
+
+[tool.setuptools.packages.find]
+# where = ["."]
+exclude = ["test", "venv", "dist", "*venv*"]
